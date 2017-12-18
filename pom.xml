@@ -10,12 +10,12 @@
         <bintray.repo>andsel/maven</bintray.repo>
         <bintray.parent.package>org.dna.mqtt.moquette-parent</bintray.parent.package>
     </properties>
-    
+
     <groupId>org.eclipse.moquette</groupId>
-    <artifactId>moquette-parent</artifactId>
+    <artifactId>moquette</artifactId>
 
     <packaging>pom</packaging>
-    <version>0.7</version>
+    <version>0.7-review</version>
     <name>Moquette MQTT parent</name>
     <url>https://github.com/andsel/moquette/</url>
 
@@ -26,7 +26,7 @@
         <module>broker</module>
         <module>distribution</module>
     </modules>
-    
+
     <reporting>
         <plugins>
             <plugin>
@@ -50,6 +50,7 @@
         </plugins>
     </build>
 
+    <!--
     <repositories>
         <repository>
             <id>Paho Releases</id>
@@ -71,4 +72,5 @@
             <url>https://api.bintray.com/maven/${bintray.repo}/${bintray.parent.package}</url>
         </repository>
     </distributionManagement>
+  -->
 </project>

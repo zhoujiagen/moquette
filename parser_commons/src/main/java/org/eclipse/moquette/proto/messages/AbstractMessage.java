@@ -17,7 +17,7 @@ package org.eclipse.moquette.proto.messages;
 
 /**
  * Basic abstract message for all MQTT protocol messages.
- * 
+ * <p> MARK 所有MQTT协议消息的抽象基类.
  * @author andrea
  */
 public abstract class AbstractMessage {

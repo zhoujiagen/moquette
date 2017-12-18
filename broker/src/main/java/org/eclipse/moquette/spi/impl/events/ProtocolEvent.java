@@ -21,10 +21,11 @@ import org.eclipse.moquette.server.ServerChannel;
 
 /**
  * Event used to carry ProtocolMessages from front handler to event processor
+ * <p> MARK 协议事件: 将协议消息(AbstractMessage)从Netty ChannelHandler发给事件处理器.
  */
 public class ProtocolEvent extends MessagingEvent {
     ServerChannel m_session;
-    AbstractMessage message;
+    AbstractMessage message; // MARK 协议消息
 
     public ProtocolEvent(ServerChannel session, AbstractMessage message) {
         this.m_session = session;

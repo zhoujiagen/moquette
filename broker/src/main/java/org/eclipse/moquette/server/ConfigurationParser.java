@@ -30,7 +30,7 @@ import static org.eclipse.moquette.commons.Constants.*;
  * 
  * A line that at the very first has # is a comment
  * Each line has key value format, where the separator used it the space.
- * 
+ * <p> MARK 配置解析器
  * @author andrea
  */
 class ConfigurationParser {

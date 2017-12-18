@@ -5,12 +5,12 @@
     <parent>
         <relativePath>../</relativePath>
         <!--<relativePath>../pom.xml</relativePath>-->
-        <artifactId>moquette-parent</artifactId>
+        <artifactId>moquette</artifactId>
         <groupId>org.eclipse.moquette</groupId>
-        <version>0.7</version>
+        <version>0.7-review</version>
     </parent>
 
-    <artifactId>moquette-netty-parser</artifactId>
+    <artifactId>netty-parser</artifactId>
     <packaging>jar</packaging>
     <!--<version>${moquette-version}</version>-->
     <name>Moquette - Netty Parser</name>
@@ -23,57 +23,57 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>moquette-parser-commons</artifactId>
+            <artifactId>parser-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-common</artifactId>
             <version>${netty.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-buffer</artifactId>
             <version>${netty.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-transport</artifactId>
             <version>${netty.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-handler</artifactId>
             <version>${netty.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.6.4</version>
         </dependency>
-        
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.8.2</version>
             <scope>test</scope>
         </dependency>
-        
+
         <!-- needs extra dependencies: objenesis & hamcrest -->
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>  
-            <version>1.9.0</version> 
+            <artifactId>mockito-core</artifactId>
+            <version>1.9.0</version>
             <scope>test</scope>
         </dependency>
 
     </dependencies>
-    
+
     <build>
         <plugins>
             <plugin>
@@ -89,11 +89,13 @@
 
         </plugins>
     </build>
-    
+
+    <!--
     <distributionManagement>
         <repository>
             <id>bintray</id>
             <url>https://api.bintray.com/maven/${bintray.repo}/${bintray.package}</url>
         </repository>
     </distributionManagement>
+    -->
 </project>

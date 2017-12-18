@@ -56,7 +56,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * MARK 基于Netty的服务端接入.
  * @author andrea
  */
 public class NettyAcceptor implements ServerAcceptor {
@@ -102,8 +102,11 @@ public class NettyAcceptor implements ServerAcceptor {
         m_bossGroup = new NioEventLoopGroup();
         m_workerGroup = new NioEventLoopGroup();
         
+        // MARK 初始化TCP传输协议处理
         initializePlainTCPTransport(messaging, props);
+        // MARK 初始化WebSocket传输协议处理
         initializeWebSocketTransport(messaging, props);
+        // MARK 初始化TCP+SSL/WebSocket+SSL传输协议处理
         String sslTcpPortProp = props.getProperty(Constants.SSL_PORT_PROPERTY_NAME);
         String wssPortProp = props.getProperty(Constants.WSS_PORT_PROPERTY_NAME);
         if (sslTcpPortProp != null || wssPortProp != null) {
@@ -138,7 +141,7 @@ public class NettyAcceptor implements ServerAcceptor {
                 .option(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_KEEPALIVE, true);
         try {
-            // Bind and start to accept incoming connections.
+            // Bind and start to accept incoming connections. MARK 绑定并开始接收连接
             ChannelFuture f = b.bind(host, port);
             LOG.info("Server binded host: {}, port: {}", host, port);
             f.sync();
@@ -149,7 +152,7 @@ public class NettyAcceptor implements ServerAcceptor {
     
     private void initializePlainTCPTransport(IMessaging messaging, Properties props) throws IOException {
         final NettyMQTTHandler handler = new NettyMQTTHandler();
-        handler.setMessaging(messaging);
+        handler.setMessaging(messaging);// MARK 在NettyMQTTHandler中注入IMessaging
         String host = props.getProperty(Constants.HOST_PROPERTY_NAME);
         int port = Integer.parseInt(props.getProperty(Constants.PORT_PROPERTY_NAME));
         initFactory(host, port, new PipelineInitializer() {

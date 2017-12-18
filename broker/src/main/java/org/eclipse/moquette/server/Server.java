@@ -90,10 +90,10 @@ public class Server {
     	m_properties = confParser.getProperties();
         LOG.info("Persistent store file: " + m_properties.get(PERSISTENT_STORE_PROPERTY_NAME));
         messaging = SimpleMessaging.getInstance();
-        messaging.init(m_properties);
+        messaging.init(m_properties); // MARK 初始化SimpleMessaging
         
         m_acceptor = new NettyAcceptor();
-        m_acceptor.initialize(messaging, m_properties);
+        m_acceptor.initialize(messaging, m_properties); // MARK 初始化NettyAcceptor
     }
     
     public void stopServer() {

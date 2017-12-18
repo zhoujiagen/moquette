@@ -23,7 +23,7 @@ import org.eclipse.moquette.server.ServerChannel;
  * 
  * It's the abstraction of the messaging stuff attached in after the front protocol
  * parsing stuff.
- * 
+ * <p> MARK 输入事件队列中的一些事件通知的回调接口. 在前端协议解析后消息处理上的抽象.
  * @author andrea
  */
 public interface IMessaging {
@@ -31,6 +31,7 @@ public interface IMessaging {
     void stop();
 
     void lostConnection(String clientID);
-
+    
+    /**MAKR 处理协议消息, 封装为协议事件(ProtocolEvent), 发送给LMAX Disruptor.*/
     void handleProtocolMessage(ServerChannel session, AbstractMessage msg);
 }

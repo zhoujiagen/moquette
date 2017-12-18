@@ -18,7 +18,7 @@ package org.eclipse.moquette.server;
 import io.netty.util.AttributeKey;
 
 /**
- *
+ * 自定义服务端Channel抽象: 访问属性, 设置空闲时间, 关闭, 写数据.
  * @author andrea
  */
 public interface ServerChannel {

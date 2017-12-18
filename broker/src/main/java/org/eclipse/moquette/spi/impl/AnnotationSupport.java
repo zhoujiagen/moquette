@@ -34,6 +34,7 @@ class AnnotationSupport {
     private final Map<Class, Method> messageClassToMethod = new HashMap<Class, Method>();
     private Object targetInstance;
 
+    /**MARK 实例上有<code>@MQTTMessage</code>注解的方法, 见ProtocolProcessor.*/
     void processAnnotations(Object instance) {
         targetInstance = instance;
         Class instanceCls = instance.getClass();
@@ -51,7 +52,7 @@ class AnnotationSupport {
     /**
      * Dispatch a call to the wrapped target invoking the method that match the 
      * msg class.
-     * 
+     * <p> MARK 按协议消息(AbstractMessage)的具体类型, 分发给ProtocolProcessor中相应方法.
      * @throws RuntimeException if the message can't be routed to any annotated method,
      * or if there are any errors during invocation.
      */

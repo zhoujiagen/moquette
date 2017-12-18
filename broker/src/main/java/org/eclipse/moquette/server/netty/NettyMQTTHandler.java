@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * MARK MQTT的ChannelInboundHandler实现.
  * @author andrea
  */
 @Sharable
@@ -45,15 +45,19 @@ public class NettyMQTTHandler extends ChannelInboundHandlerAdapter {
         LOG.info("Received a message of type {}", Utils.msgType2String(msg.getMessageType()));
         try {
             switch (msg.getMessageType()) {
-                case CONNECT:
-                case SUBSCRIBE:
-                case UNSUBSCRIBE:
-                case PUBLISH:
-                case PUBREC:
-                case PUBCOMP:
-                case PUBREL:
-                case DISCONNECT:
-                case PUBACK:    
+                case CONNECT:           // 3.01 CONNECT – 连接服务端
+                                        // 3.02 CONNACK – 确认连接请求
+                case PUBLISH:           // 3.03 PUBLISH – 发布消息
+                case PUBACK:            // 3.04 PUBACK –发布确认
+                case PUBREC:            // 3.05 PUBREC – 发布收到(QoS 2,第一步)
+                case PUBREL:            // 3.06 PUBREL – 发布释放(QoS 2,第二步)
+                case PUBCOMP:           // 3.07 PUBCOMP – 发布完成(QoS 2,第三步)
+                case SUBSCRIBE:         // 3.08 SUBSCRIBE - 订阅主题
+                                        // 3.09 SUBACK – 订阅确认
+                case UNSUBSCRIBE:       // 3.10 UNSUBSCRIBE –取消订阅
+                                        // 3.11 UNSUBACK – 取消订阅确认
+                case DISCONNECT:        // 3.14 DISCONNECT –断开连接
+
 //                    NettyChannel channel;
 //                    synchronized(m_channelMapper) {
 //                        if (!m_channelMapper.containsKey(ctx)) {
@@ -61,10 +65,11 @@ public class NettyMQTTHandler extends ChannelInboundHandlerAdapter {
 //                        }
 //                        channel = m_channelMapper.get(ctx);
 //                    }
-                    
+                    // MARK 转发给IMessaging处理
                     m_messaging.handleProtocolMessage(new NettyChannel(ctx), msg);
                     break;
-                case PINGREQ:
+                case PINGREQ:       // MARK 直接处理 3.12 PINGREQ – 心跳请求,
+                                    //              3.13 PINGRESP – 心跳响应
                     PingRespMessage pingResp = new PingRespMessage();
                     ctx.writeAndFlush(pingResp);
                     break;

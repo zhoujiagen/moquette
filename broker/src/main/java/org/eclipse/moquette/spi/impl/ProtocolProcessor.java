@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
  * the protocol execution. 
  * 
  * Used by the front facing class SimpleMessaging.
- * 
+ * <p> MARK 负责处理MQTT协议的逻辑, 指导协议执行(是个Disruptor EventHandler).
  * @author andrea
  */
 class ProtocolProcessor implements EventHandler<ValueEvent> {
@@ -145,6 +145,7 @@ class ProtocolProcessor implements EventHandler<ValueEvent> {
         m_ringBuffer = disruptor.getRingBuffer();
     }
     
+    // MARK CONNECT–连接服务端
     @MQTTMessage(message = ConnectMessage.class)
     void processConnect(ServerChannel session, ConnectMessage msg) {
         LOG.debug("CONNECT for client <{}>", msg.getClientID());
@@ -272,6 +273,7 @@ class ProtocolProcessor implements EventHandler<ValueEvent> {
         }
     }
     
+    // MARK PUBACK –发布确认
     @MQTTMessage(message = PubAckMessage.class)
     void processPubAck(ServerChannel session, PubAckMessage msg) {
         String clientID = (String) session.getAttribute(NettyChannel.ATTR_KEY_CLIENTID);
@@ -290,6 +292,7 @@ class ProtocolProcessor implements EventHandler<ValueEvent> {
         m_messagesStore.dropMessagesInSession(clientID);
     }
     
+    // MARK PUBLISH – 发布消息
     @MQTTMessage(message = PublishMessage.class)
     void processPublish(ServerChannel session, PublishMessage msg) {
         LOG.trace("PUB --PUBLISH--> SRV executePublish invoked with {}", msg);
@@ -304,6 +307,7 @@ class ProtocolProcessor implements EventHandler<ValueEvent> {
         }
     }
         
+    /** MARK caller: {@link #processPublish(ServerChannel, PublishMessage)}*/ 
     private void executePublish(String clientID, PublishMessage msg) {
         final String topic = msg.getTopicName();
         final AbstractMessage.QOSType qos = msg.getQos();
@@ -410,6 +414,20 @@ class ProtocolProcessor implements EventHandler<ValueEvent> {
         }
     }
 
+    /**
+     * MARK caller:
+     * <pre>
+     * {@link #forward2Subscribers(PublishEvent)}
+     * {@link #republishStoredInSession(String)}
+     * {@link #subscribeSingleTopic(Subscription, String)}
+     * </pre>
+     * @param clientId
+     * @param topic
+     * @param qos
+     * @param message
+     * @param retained
+     * @param messageID
+     */
     protected void sendPublish(String clientId, String topic, AbstractMessage.QOSType qos, ByteBuffer message, boolean retained, Integer messageID) {
         LOG.debug("sendPublish invoked clientId <{}> on topic <{}> QoS {} retained {} messageID {}", clientId, topic, qos, retained, messageID);
         PublishMessage pubMessage = new PublishMessage();
@@ -450,6 +468,7 @@ class ProtocolProcessor implements EventHandler<ValueEvent> {
         disruptorPublish(new OutputMessagingEvent(session, pubMessage));
     }
     
+    /**MARK caller: {@link #executePublish(String, PublishMessage)}*/
     private void sendPubRec(String clientID, int messageID) {
         LOG.trace("PUB <--PUBREC-- SRV sendPubRec invoked for clientID {} with messageID {}", clientID, messageID);
         PubRecMessage pubRecMessage = new PubRecMessage();
@@ -459,6 +478,7 @@ class ProtocolProcessor implements EventHandler<ValueEvent> {
         disruptorPublish(new OutputMessagingEvent(m_clientIDs.get(clientID).getSession(), pubRecMessage));
     }
     
+    /**MARK caller: {@link #executePublish(String, PublishMessage)}*/
     private void sendPubAck(PubAckEvent evt) {
         LOG.trace("sendPubAck invoked");
 
@@ -483,6 +503,7 @@ class ProtocolProcessor implements EventHandler<ValueEvent> {
         }
     }
     
+    // MARK PUBREL – 发布释放(QoS 2,第二步)
     /**
      * Second phase of a publish QoS2 protocol, sent by publisher to the broker. Search the stored message and publish
      * to all interested subscribers.
@@ -506,6 +527,7 @@ class ProtocolProcessor implements EventHandler<ValueEvent> {
         sendPubComp(clientID, messageID);
     }
     
+    /**MARK caller: {@link #processPubRel(ServerChannel, PubRelMessage)}*/
     private void sendPubComp(String clientID, int messageID) {
         LOG.debug("PUB <--PUBCOMP-- SRV sendPubComp invoked for clientID {} ad messageID {}", clientID, messageID);
         PubCompMessage pubCompMessage = new PubCompMessage();
@@ -515,6 +537,7 @@ class ProtocolProcessor implements EventHandler<ValueEvent> {
         disruptorPublish(new OutputMessagingEvent(m_clientIDs.get(clientID).getSession(), pubCompMessage));
     }
     
+    // MARK PUBREC – 发布收到(QoS 2,第一步)
     @MQTTMessage(message = PubRecMessage.class)
     void processPubRec(ServerChannel session, PubRecMessage msg) {
         String clientID = (String) session.getAttribute(NettyChannel.ATTR_KEY_CLIENTID);
@@ -530,6 +553,7 @@ class ProtocolProcessor implements EventHandler<ValueEvent> {
         session.write(pubRelMessage);
     }
     
+    // MARK PUBCOMP – 发布完成(QoS 2,第三步)
     @MQTTMessage(message = PubCompMessage.class)
     void processPubComp(ServerChannel session, PubCompMessage msg) {
         String clientID = (String) session.getAttribute(NettyChannel.ATTR_KEY_CLIENTID);
@@ -539,6 +563,7 @@ class ProtocolProcessor implements EventHandler<ValueEvent> {
         m_messagesStore.cleanInFlight(clientID, messageID);
     }
     
+    // MARK DISCONNECT–断开连接
     @MQTTMessage(message = DisconnectMessage.class)
     void processDisconnect(ServerChannel session, DisconnectMessage msg) throws InterruptedException {
         String clientID = (String) session.getAttribute(NettyChannel.ATTR_KEY_CLIENTID);
@@ -559,6 +584,7 @@ class ProtocolProcessor implements EventHandler<ValueEvent> {
         LOG.info("DISCONNECT client <{}> with clean session {}", clientID, cleanSession);
     }
     
+    // MARK 处理连接丢失
     void processConnectionLost(LostConnectionEvent evt) {
         String clientID = evt.clientID;
         //If already removed a disconnect message was already processed for this clientID
@@ -576,6 +602,7 @@ class ProtocolProcessor implements EventHandler<ValueEvent> {
         }
     }
     
+    // MARK UNSUBSCRIBE –取消订阅
     /**
      * Remove the clientID from topic subscription, if not previously subscribed,
      * doesn't reply any error
@@ -600,6 +627,7 @@ class ProtocolProcessor implements EventHandler<ValueEvent> {
         session.write(ackMessage);
     }
     
+    // MARK SUBSCRIBE - 订阅主题
     @MQTTMessage(message = SubscribeMessage.class)
     void processSubscribe(ServerChannel session, SubscribeMessage msg) {
         String clientID = (String) session.getAttribute(NettyChannel.ATTR_KEY_CLIENTID);
@@ -651,6 +679,17 @@ class ProtocolProcessor implements EventHandler<ValueEvent> {
         return true;
     }
     
+    /**
+     * MARK 向LMAX Disruptor投递事件(写操作).
+     * 
+     * caller: 
+     * <pre>
+     * {@link #sendPubAck(PubAckEvent)}, 
+     * {@link #sendPubComp(String, int)}, 
+     * {@link #sendPublish(String, String, QOSType, ByteBuffer, boolean, Integer)}
+     * {@link #sendPubRec(String, int)}
+     * </pre>
+     * */
     private void disruptorPublish(OutputMessagingEvent msgEvent) {
         LOG.debug("disruptorPublish publishing event on output {}", msgEvent);
         long sequence = m_ringBuffer.next();
@@ -661,6 +700,7 @@ class ProtocolProcessor implements EventHandler<ValueEvent> {
         m_ringBuffer.publish(sequence); 
     }
 
+    @Override
     public void onEvent(ValueEvent t, long l, boolean bln) throws Exception {
         try {
             MessagingEvent evt = t.getEvent();

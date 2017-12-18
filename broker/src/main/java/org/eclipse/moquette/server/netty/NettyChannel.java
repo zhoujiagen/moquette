@@ -23,12 +23,12 @@ import org.eclipse.moquette.server.Constants;
 import org.eclipse.moquette.server.ServerChannel;
 
 /**
- *
+ * 基于Netty的ChannelHandlerContext的服务端Channel实现.
  * @author andrea
  */
 public class NettyChannel implements ServerChannel {
     
-    private ChannelHandlerContext m_channel;
+    private ChannelHandlerContext m_channel; // MARK Netty的ChannelHandlerContext
 
     public static final String ATTR_USERNAME = "username";
 

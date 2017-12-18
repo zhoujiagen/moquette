@@ -17,7 +17,7 @@ package org.eclipse.moquette.spi.impl.events;
 
 /**
  *Event used to push work request on the SimpleMessaging.
- * 
+ * <p> MARK 发给IMessaging处理的消息事件(消息化事件).
  * @author andrea
  */
 public abstract class MessagingEvent {

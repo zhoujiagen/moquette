@@ -20,7 +20,7 @@ import org.eclipse.moquette.spi.impl.events.MessagingEvent;
 
 /**
  * Carrier value object for the RingBuffer.
- *
+ * <p> LMAX Disruptor中RingBuffer中的值对象.
  * @author andrea
  */
 public final class ValueEvent {

@@ -20,7 +20,7 @@ import java.util.Properties;
 import org.eclipse.moquette.spi.IMessaging;
 
 /**
- *
+ * MARK 服务端接入器, 将协议数据转换为消息处理.
  * @author andrea
  */
 public interface ServerAcceptor {
