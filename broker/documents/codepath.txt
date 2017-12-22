@@ -1,0 +1,85 @@
+############################################################### 概述
+(a) Server使用的Netty接入层中使用了MettyMQTTHandler, 该Handler接收MQTT消息后调用SimpleMessaging在Disruptor RingBuffer中发布协议事件;
+(b) SimpleMessaging实现了Disruptor EventHandler, 接收到自身发布的事件后, 按事件的协议类型分别调用ProtocolProcessor中相应方法处理;
+(c) ProtocolProcessor在处理需要输出MQTT消息的协议事件时, 发布事件到自身的RingBuffer中,
+同时也实现了EventHandler, 在接收事件后使用协议事件中的Channel直接写出输出消息完成MQTT协议契约.
+
+
+############################################################### Server启动
+
+Server#startServer
+|-- SimpleMessaging#init()
+|--|-- new SubscriptionsStore
+|--|-- new new Disruptor
+|--|-- IMessagesStore, ISessionsStore=MemoryStorageService
+|--|-- IMessagesStore#initStore
+|--|-- SubscriptionsStore#init(ISessionsStore)
+|--|-- IAuthenticator=MQTTAuthenticator - 未实现
+|--|-- ProtocolProcessor#init(SubscriptionsStore, IMessagesStore, ISessionsStore, IAuthenticator, Properties props)
+
+|-- NettyAcceptor#initialize(IMessaging)
+|--|-- NettyAcceptor#initializePlainTCPTransport
+|--|--|-- new NettyMQTTHandler(IMessaging)
+|--|--|-- new ServerBootstrap
+|--|--|--|-- ChannelPipeline: MQTTDecoder, MQTTEncoder, MessageMetricsHandler, NettyMQTTHandler
+|--|-- NettyAcceptor#initializeWebSocketTransport
+|--|-- NettyAcceptor#initializeSSLTCPTransport
+
+|-- ServiceRegister#register
+
+
+
+############################################################### MQTT协议消息处理
+
+NettyMQTTHandler(ChannelInboundHandlerAdapter)
+|-- channelRead
+|--|-- IMessaging#handleProtocolMessage
+|--|--|-- disruptorPublish(ProtocolEvent)
+|--|--|--
+|--|--|-- onEvent(ValueEvent): 处理StopEvent, LostConnectionEvent, ProtocolEvent
+|--|--|--|-- ProtocolProcessor#processConnect(ServerChannel, ConnectMessage)
+|--|--|--|-- ...
+|--|--|--|-- ProtocolProcessor#processPublish(ServerChannel, PublishMessage)
+|-- channelInactive
+|--|-- IMessaging#lostConnection
+
+
+############################################################### Disruptor的使用
+
+ValueEvent: wrap MessagingEvent
+
+MessagingEvent
+  LostConnectionEvent
+  OutputMessagingEvent
+  ProtocolEvent
+  PubAckEvent
+  PublishEvent
+  RepublishEvent
+  StopEvent
+  SubscribeEvent
+
+############################################################### Netty的使用
+
+ServerChannel
+实现: 自定义封装NettyChannel: 提供上下文(ChannelHandlerContext)中属性设置/获取, 动态修改上下文中处理器链, 写出数据等功能.
+
+############################################################### MQTT的实现细节
+
+MQTT协议消息:
+AbstractMessage
+  ConnAckMessage
+  ConnectMessage
+  MessageIDMessage
+    PubAckMessage
+    PubCompMessage
+    PublishMessage
+    PubRecMessage
+    PubRelMessage
+    SubAckMessage
+    SubscribeMessage
+    UnsubAckMessage
+    UnsubscribeMessage
+  ZeroLengthMessage
+    DisconnectMessage
+    PingReqMessage
+    PingRespMessage
